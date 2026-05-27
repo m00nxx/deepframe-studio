@@ -1,0 +1,524 @@
+effects:
+  - id: vs.knlmeanscl
+    name: KNLMeansCL Denoise
+    engine: vapoursynth
+    category: denoise
+    description: OpenCL denoise pass for modern VapourSynth workflows.
+    recommended: true
+    required_plugins: ["KNLMeansCL"]
+    install_status: missing
+    install_policy: manual
+    install_allowed: false
+    install_method: Manual install from upstream release.
+    source_url: https://github.com/Khanattila/KNLMeansCL
+    download_url: ""
+    license_status: manual_review
+    license_notes: Verify upstream binary/script license before redistribution.
+    cpu_gpu_notes: OpenCL GPU preferred; CPU fallback depends on OpenCL runtime.
+    parameters:
+      - name: strength
+        type: float
+        default: 1.2
+        min: 0.0
+        max: 5.0
+        step: 0.1
+        label: Strength
+        description: Main denoise amount. Higher values clean more noise but can soften fine detail.
+    defaults: { strength: 1.2 }
+    script_template: "clip = core.knlm.KNLMeansCL(clip, d=1, a=2, s={strength})"
+    input_constraints: 8-16 bit YUV/RGB clips depending on plugin build.
+    output_constraints: Same dimensions as input.
+
+  - id: vs.bm3d
+    name: BM3D Denoise
+    engine: vapoursynth
+    category: denoise
+    description: High quality block-matching denoise, slower than KNLMeansCL.
+    recommended: true
+    required_plugins: ["BM3D", "fmtconv or zimg-compatible format conversion"]
+    install_status: missing
+    install_policy: manual
+    install_allowed: false
+    install_method: Manual install until binary/source licensing is reviewed.
+    source_url: https://github.com/HomeOfVapourSynthEvolution/VapourSynth-BM3D
+    license_status: manual_review
+    license_notes: Metadata reference only; do not bundle until reviewed.
+    cpu_gpu_notes: CPU-heavy; use on short ranges or cached preview.
+    parameters:
+      - name: sigma
+        type: float
+        default: 3.0
+        min: 0.0
+        max: 20.0
+        step: 0.1
+        label: Sigma
+        description: Noise standard deviation estimate; higher removes more noise.
+    defaults: { sigma: 3.0 }
+    script_template: "clip = core.resize.Bicubic(clip, format=vs.YUV444PS)\nclip = core.bm3d.Basic(clip, sigma={sigma})\nclip = core.resize.Bicubic(clip, format=vs.YUV420P8)"
+    input_constraints: Converts subsampled clips to YUV444 float for BM3D preview.
+    output_constraints: Same dimensions as input.
+
+  - id: vs.qtgmc
+    name: QTGMC Deinterlace
+    engine: vapoursynth
+    category: deinterlace
+    description: High quality motion-compensated deinterlacing script.
+    recommended: true
+    required_plugins: ["QTGMC script", "mvtools", "nnedi3/eedi3 optional dependencies"]
+    install_status: manual
+    install_policy: manual
+    install_allowed: false
+    install_method: Manual script/plugin installation; dependencies vary by build.
+    source_url: https://github.com/HomeOfVapourSynthEvolution/havsfunc
+    license_status: manual_review
+    license_notes: Mixed script/plugin dependencies require review.
+    cpu_gpu_notes: CPU-heavy; preview should use short cached ranges.
+    parameters:
+      - name: preset
+        type: enum
+        default: Slower
+        options: [Draft, Fast, Medium, Slow, Slower]
+        label: Preset
+        description: Quality/speed preset.
+    defaults: { preset: Slower }
+    script_imports: ["import havsfunc"]
+    script_template: "clip = havsfunc.QTGMC(clip, TFF=True, Preset='{preset}', EdiMode='EEDI3')"
+    input_constraints: Interlaced source clips.
+    output_constraints: Progressive output, often doubled frame rate depending settings.
+
+  - id: vs.cas
+    name: CAS Sharpen
+    engine: vapoursynth
+    category: sharpen
+    description: Contrast Adaptive Sharpening style enhancement.
+    recommended: true
+    required_plugins: ["CAS or compatible script"]
+    install_status: missing
+    install_policy: manual
+    install_allowed: false
+    install_method: Manual install from reviewed script/plugin source.
+    source_url: https://github.com/HomeOfVapourSynthEvolution
+    license_status: manual_review
+    license_notes: Confirm exact implementation license before bundling.
+    cpu_gpu_notes: Usually CPU; lightweight compared to denoise.
+    parameters:
+      - name: sharpness
+        type: float
+        default: 0.5
+        min: 0.0
+        max: 1.0
+        step: 0.05
+        label: Sharpness
+        description: Sharpening amount.
+    defaults: { sharpness: 0.5 }
+    script_template: "clip = core.cas.CAS(clip, sharpness={sharpness})"
+    input_constraints: Progressive clip recommended.
+    output_constraints: Same dimensions as input.
+
+  - id: vs.std.boxblur
+    name: Box Blur
+    engine: vapoursynth
+    category: blur
+    description: Simple built-in blur scaffold for masks and repair workflows.
+    recommended: true
+    required_plugins: []
+    install_status: installed
+    install_policy: builtin
+    install_allowed: false
+    install_method: Built into VapourSynth standard filters.
+    source_url: https://www.vapoursynth.com/doc/functions/video/boxblur.html
+    license_status: built_in
+    license_notes: Available with VapourSynth installation.
+    cpu_gpu_notes: CPU, fast.
+    parameters:
+      - name: hradius
+        type: int
+        default: 1
+        min: 1
+        max: 16
+        step: 1
+        label: Radius
+        description: Horizontal blur radius.
+    defaults: { hradius: 1 }
+    script_template: "clip = core.std.BoxBlur(clip, hradius={hradius}, vradius={hradius})"
+    input_constraints: Any VapourSynth clip.
+    output_constraints: Same dimensions as input.
+
+  - id: vs.resize.bicubic
+    name: Bicubic Resize
+    engine: vapoursynth
+    category: resize
+    description: Built-in VapourSynth resize operation.
+    recommended: true
+    required_plugins: []
+    install_status: installed
+    install_policy: builtin
+    install_allowed: false
+    install_method: Built into VapourSynth core resize API.
+    source_url: https://www.vapoursynth.com/doc/functions/video/resize.html
+    license_status: built_in
+    license_notes: Available with VapourSynth installation.
+    cpu_gpu_notes: CPU, fast.
+    parameters:
+      - name: width
+        type: int
+        default: 1920
+        min: 16
+        max: 16384
+        step: 2
+        label: Width
+        unit: px
+        description: Output frame width in pixels.
+      - name: height
+        type: int
+        default: 1080
+        min: 16
+        max: 16384
+        step: 2
+        label: Height
+        unit: px
+        description: Output frame height in pixels.
+    defaults: { width: 1920, height: 1080 }
+    script_template: "clip = core.resize.Bicubic(clip, width={width}, height={height})"
+    input_constraints: Any VapourSynth clip.
+    output_constraints: Requested output dimensions.
+
+  - id: ai.realesrgan
+    name: Real-ESRGAN Upscale
+    engine: vapoursynth
+    category: upscale
+    description: Metadata scaffold for future Real-ESRGAN adapter.
+    recommended: true
+    required_plugins: ["Real-ESRGAN adapter", "model files"]
+    install_status: missing
+    install_policy: metadata_only
+    install_allowed: false
+    install_method: Future optional model manager; no automatic model download in MVP.
+    source_url: https://github.com/xinntao/Real-ESRGAN
+    license_status: manual_review
+    license_notes: Models/code licenses must be reviewed separately before installer support.
+    cpu_gpu_notes: CUDA/PyTorch GPU preferred; CPU fallback can be very slow.
+    parameters:
+      - name: scale
+        type: enum
+        default: 2x
+        options: [2x, 4x]
+        label: Scale
+        description: Target upscale factor.
+    defaults: { scale: 2x }
+    script_template: "# Real-ESRGAN adapter scaffold: scale={scale}"
+    input_constraints: Progressive clip; color conversion may be required.
+    output_constraints: Upscaled dimensions.
+
+  - id: vs.dehalo_alpha
+    name: DeHalo Alpha
+    engine: vapoursynth
+    category: repair
+    description: Halo repair script metadata for edge artifacts.
+    recommended: true
+    required_plugins: ["havsfunc or compatible DeHalo_alpha script"]
+    install_status: manual
+    install_policy: manual
+    install_allowed: false
+    install_method: Manual script install after license/dependency review.
+    source_url: https://github.com/HomeOfVapourSynthEvolution/havsfunc
+    license_status: manual_review
+    license_notes: Script dependencies need review before bundling.
+    cpu_gpu_notes: CPU; moderate cost.
+    parameters:
+      - name: rx
+        type: float
+        default: 2.0
+        min: 1.0
+        max: 4.0
+        step: 0.1
+        label: Radius
+        description: Horizontal halo search radius.
+    defaults: { rx: 2.0 }
+    script_imports: ["import havsfunc"]
+    script_template: "clip = havsfunc.DeHalo_alpha(clip, rx={rx})"
+    input_constraints: Progressive clip recommended.
+    output_constraints: Same dimensions as input.
+
+  - id: vs.deshake.scaffold
+    name: Stabilize Scaffold
+    engine: vapoursynth
+    category: stabilize
+    description: Placeholder for future stabilization adapter/plugin metadata.
+    recommended: false
+    required_plugins: ["future stabilization adapter"]
+    install_status: missing
+    install_policy: metadata_only
+    install_allowed: false
+    install_method: Roadmap only; no installer in MVP.
+    source_url: ""
+    license_status: unclear
+    license_notes: Select implementation before enabling installation.
+    cpu_gpu_notes: CPU/GPU depends on chosen engine.
+    parameters:
+      - name: strength
+        type: float
+        default: 0.5
+        min: 0.0
+        max: 1.0
+        step: 0.05
+        label: Strength
+        description: Future stabilization strength.
+    defaults: { strength: 0.5 }
+    script_template: "# Stabilization scaffold: strength={strength}"
+    input_constraints: Future adapter.
+    output_constraints: Future adapter.
+
+  - id: vs.tweak
+    name: Tweak Color
+    engine: vapoursynth
+    category: color
+    description: Basic color correction using adjustable saturation.
+    recommended: true
+    required_plugins: []
+    install_status: installed
+    install_policy: builtin
+    install_allowed: false
+    install_method: Built into VapourSynth std/resize color workflows.
+    source_url: https://www.vapoursynth.com/doc/
+    license_status: built_in
+    license_notes: Available with VapourSynth installation.
+    cpu_gpu_notes: CPU, fast.
+    parameters:
+      - name: saturation
+        type: float
+        default: 1.0
+        min: 0.0
+        max: 2.0
+        step: 0.05
+        label: Saturation
+        description: Saturation multiplier scaffold.
+    defaults: { saturation: 1.0 }
+    script_template: "# Color tweak scaffold: saturation={saturation}"
+    input_constraints: Color family handling required before real render.
+    output_constraints: Same dimensions as input.
+
+  - id: vs.f3kdb
+    name: f3kdb Deband
+    engine: vapoursynth
+    category: deband
+    description: Widely used debanding plugin metadata.
+    recommended: true
+    required_plugins: ["f3kdb"]
+    install_status: missing
+    install_policy: manual
+    install_allowed: false
+    install_method: Manual install until redistribution terms are verified.
+    source_url: https://github.com/HomeOfVapourSynthEvolution/VapourSynth-neo_f3kdb
+    license_status: manual_review
+    license_notes: Verify exact build/license before bundling.
+    cpu_gpu_notes: CPU; moderate cost.
+    parameters:
+      - name: range
+        type: int
+        default: 15
+        min: 1
+        max: 31
+        step: 1
+        label: Range
+        description: Debanding neighborhood range.
+    defaults: { range: 15 }
+    script_template: "clip = core.neo_f3kdb.Deband(clip, range={range})"
+    input_constraints: YUV clips commonly used.
+    output_constraints: Same dimensions as input.
+
+  - id: avs.mctemporaldenoise
+    name: MCTemporalDenoise
+    engine: avisynth
+    category: degrain
+    description: Legacy AviSynth+ degrain script for compatibility workflows.
+    recommended: true
+    required_plugins: ["MCTemporalDenoise.avsi", "AviSynth+ dependencies"]
+    install_status: manual
+    install_policy: manual
+    install_allowed: false
+    install_method: Manual install only unless all dependency licenses are clear.
+    source_url: http://avisynth.nl/index.php/MCTemporalDenoise
+    license_status: manual_review
+    license_notes: Legacy scripts often have mixed dependency licensing.
+    cpu_gpu_notes: 64-bit AviSynth+ first; 32-bit bridge is roadmap.
+    parameters:
+      - name: settings
+        type: enum
+        default: medium
+        options: [low, medium, high]
+        label: Preset
+        description: Legacy preset controlling denoise aggressiveness.
+    defaults: { settings: medium }
+    script_templates:
+      avisynth: "clip = MCTemporalDenoise(clip, settings=\"{settings}\")"
+    input_constraints: AviSynth+ source clip.
+    output_constraints: Same dimensions as input.
+
+  - id: vs.deblock_qed
+    name: Deblock QED
+    engine: vapoursynth
+    category: artifact removal
+    description: Blocking artifact removal metadata scaffold.
+    recommended: true
+    required_plugins: ["Deblock_QED script or equivalent"]
+    install_status: manual
+    install_policy: manual
+    install_allowed: false
+    install_method: Manual script install after license review.
+    source_url: https://github.com/HomeOfVapourSynthEvolution/havsfunc
+    license_status: manual_review
+    license_notes: Check script and dependency licenses before bundling.
+    cpu_gpu_notes: CPU; moderate cost.
+    parameters:
+      - name: quant1
+        type: int
+        default: 24
+        min: 1
+        max: 60
+        step: 1
+        label: Quant
+        description: Blocking cleanup strength.
+    defaults: { quant1: 24 }
+    script_imports: ["import havsfunc"]
+    script_template: "clip = havsfunc.Deblock_QED(clip, quant1={quant1})"
+    input_constraints: Compressed sources with blocking artifacts.
+    output_constraints: Same dimensions as input.
+
+  - id: ai.gfpgan
+    name: GFPGAN Face Restore
+    engine: vapoursynth
+    category: face restore
+    description: Metadata scaffold for future GFPGAN/CodeFormer adapter.
+    recommended: false
+    required_plugins: ["future face restore adapter", "model files"]
+    install_status: missing
+    install_policy: metadata_only
+    install_allowed: false
+    install_method: Future optional model manager; no automatic model download in MVP.
+    source_url: https://github.com/TencentARC/GFPGAN
+    license_status: manual_review
+    license_notes: Code and model licenses must be reviewed separately.
+    cpu_gpu_notes: CUDA/PyTorch GPU preferred.
+    parameters:
+      - name: weight
+        type: float
+        default: 0.5
+        min: 0.0
+        max: 1.0
+        step: 0.05
+        label: Weight
+        description: Future restoration strength.
+    defaults: { weight: 0.5 }
+    script_template: "# GFPGAN/CodeFormer scaffold: weight={weight}"
+    input_constraints: Face crops or adapter-managed full frames.
+    output_constraints: Same dimensions as input.
+
+  - id: ai.rife
+    name: RIFE Frame Interpolation
+    engine: vapoursynth
+    category: frame interpolation
+    description: Metadata scaffold for future RIFE adapter.
+    recommended: true
+    required_plugins: ["RIFE adapter", "model files"]
+    install_status: missing
+    install_policy: metadata_only
+    install_allowed: false
+    install_method: Future optional model manager; no automatic model download in MVP.
+    source_url: https://github.com/megvii-research/ECCV2022-RIFE
+    license_status: manual_review
+    license_notes: Code/model licensing must be reviewed before installer support.
+    cpu_gpu_notes: CUDA/PyTorch GPU preferred; CPU is slow.
+    parameters:
+      - name: multiplier
+        type: enum
+        default: 2x
+        options: [2x, 4x]
+        label: Multiplier
+        description: Target frame-rate multiplier.
+    defaults: { multiplier: 2x }
+    script_template: "# RIFE adapter scaffold: multiplier={multiplier}"
+    input_constraints: Progressive source recommended.
+    output_constraints: Increased frame count.
+
+  - id: vs.encode.scaffold
+    name: Encode H.264 Scaffold
+    engine: vapoursynth
+    category: encode
+    description: Metadata placeholder for final export encoding handled by the FFmpeg adapter.
+    recommended: true
+    required_plugins: ["configured FFmpeg binary"]
+    install_status: manual
+    install_policy: metadata_only
+    install_allowed: false
+    install_method: Configure FFmpeg in settings; encoding is not executed by the effect chain.
+    source_url: https://ffmpeg.org/
+    license_status: manual_review
+    license_notes: FFmpeg binary license depends on build configuration; do not bundle silently.
+    cpu_gpu_notes: CPU encode; NVENC detection is separate roadmap.
+    parameters:
+      - name: crf
+        type: int
+        default: 18
+        min: 0
+        max: 35
+        step: 1
+        label: CRF
+        description: Lower is higher quality/larger files.
+    defaults: { crf: 18 }
+    script_template: "# Encode preset handled by FFmpeg export: crf={crf}"
+    input_constraints: Final export stage.
+    output_constraints: Encoded file.
+
+  - id: custom.vpy
+    name: Custom VapourSynth Script
+    engine: vapoursynth
+    category: custom
+    description: User imported .vpy script placeholder.
+    recommended: false
+    required_plugins: ["user-provided .vpy"]
+    install_status: manual
+    install_policy: manual
+    install_allowed: false
+    install_method: Import from local disk; execution remains user controlled.
+    source_url: ""
+    license_status: unclear
+    license_notes: User scripts are not redistributed by DeepFrame Studio.
+    cpu_gpu_notes: Depends on user script.
+    parameters:
+      - name: script_path
+        type: string
+        default: ""
+        label: Script path
+        description: Path to a user-managed .vpy file.
+    defaults: { script_path: "" }
+    script_template: "# Custom .vpy script placeholder: {script_path}"
+    input_constraints: User-defined.
+    output_constraints: User-defined.
+
+  - id: custom.avs
+    name: Custom AviSynth+ Script
+    engine: avisynth
+    category: custom
+    description: User imported .avs script placeholder for compatibility workflows.
+    recommended: false
+    required_plugins: ["user-provided .avs"]
+    install_status: manual
+    install_policy: manual
+    install_allowed: false
+    install_method: Import from local disk; execution remains user controlled.
+    source_url: ""
+    license_status: unclear
+    license_notes: User scripts are not redistributed by DeepFrame Studio.
+    cpu_gpu_notes: 64-bit AviSynth+ first; 32-bit bridge remains roadmap.
+    parameters:
+      - name: script_path
+        type: string
+        default: ""
+        label: Script path
+        description: Path to a user-managed .avs file.
+    defaults: { script_path: "" }
+    script_templates:
+      avisynth: "# Custom .avs script placeholder: {script_path}"
+    input_constraints: User-defined.
+    output_constraints: User-defined.

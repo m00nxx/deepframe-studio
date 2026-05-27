@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+set -eu
+
+BACKEND_DIR="${DEEPFRAME_BACKEND_DIR:-}"
+if [ -z "$BACKEND_DIR" ]; then
+  SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+  BACKEND_DIR="$SCRIPT_DIR/../../backend"
+fi
+
+cd "$BACKEND_DIR"
+exec uv run --python 3.12 python -m deepframe_api.sidecar "$@"

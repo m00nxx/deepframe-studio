@@ -1,0 +1,41 @@
+{
+  "name": "deepframe-studio",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "frontend:test": "vitest run",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "sidecar:build": "python scripts/build_sidecar.py",
+    "backend:dev": "cd backend && uv run --python 3.12 uvicorn deepframe_api.app:app --host 127.0.0.1 --port 8765",
+    "backend:test": "cd backend && uv run --python 3.12 pytest -q -s tests"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@tauri-apps/api": "^2.9.0",
+    "@tauri-apps/plugin-dialog": "^2.4.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.17",
+    "@tauri-apps/cli": "^2.9.3",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^4.1.7"
+  }
+}

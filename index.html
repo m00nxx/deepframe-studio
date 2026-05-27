@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeepFrame Studio</title>
+    <style>
+      html,
+      body,
+      #root {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: #080b10;
+        color: #e5e7eb;
+        font-family: "Segoe UI", system-ui, sans-serif;
+      }
+
+      #boot-fallback {
+        display: grid;
+        height: 100%;
+        place-items: center;
+        padding: 24px;
+        color: #9ca3af;
+      }
+
+      #boot-fallback strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #e5e7eb;
+      }
+    </style>
+    <script>
+      function showBootError(message) {
+        const root = document.getElementById("root")
+        if (!root) return
+        root.innerHTML =
+          '<div id="boot-fallback"><div><strong>DeepFrame Studio failed to render.</strong><pre style="max-width: 900px; white-space: pre-wrap; color: #fca5a5;">' +
+          String(message).replace(/[&<>"']/g, function (char) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]
+          }) +
+          "</pre></div></div>"
+      }
+      window.addEventListener("error", function (event) {
+        showBootError(event.message || "Unknown JavaScript error")
+      })
+      window.addEventListener("unhandledrejection", function (event) {
+        showBootError(event.reason && event.reason.message ? event.reason.message : event.reason)
+      })
+    </script>
+  </head>
+  <body>
+    <div id="root"><div id="boot-fallback"><div><strong>DeepFrame Studio</strong>Starting interface...</div></div></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

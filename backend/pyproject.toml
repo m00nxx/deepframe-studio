@@ -1,0 +1,22 @@
+[project]
+name = "deepframe-api"
+version = "0.2.0"
+description = "DeepFrame Studio Python sidecar API"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "pydantic",
+  "pyyaml",
+  "python-multipart",
+  "pytest",
+  "httpx",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

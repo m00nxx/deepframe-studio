@@ -1,0 +1,150 @@
+@import "tailwindcss" source(none);
+@source "../src";
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-ring: hsl(var(--ring));
+  --font-sans: "Segoe UI Variable", "Segoe UI", "Inter", system-ui, sans-serif;
+  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
+
+:root {
+  --background: 222 17% 8%;
+  --foreground: 216 28% 93%;
+  --muted: 220 14% 13%;
+  --muted-foreground: 218 11% 62%;
+  --popover: 222 17% 10%;
+  --popover-foreground: 216 28% 93%;
+  --border: 220 13% 20%;
+  --input: 220 13% 18%;
+  --primary: 204 82% 58%;
+  --primary-foreground: 220 33% 7%;
+  --secondary: 220 15% 16%;
+  --secondary-foreground: 216 28% 90%;
+  --accent: 220 15% 18%;
+  --accent-foreground: 216 28% 94%;
+  --ring: 204 82% 58%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  font-size: 15px;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% -10%, rgb(40 58 76 / 0.22), transparent 32rem),
+    hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.deepframe-select {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+  color-scheme: dark;
+}
+
+.deepframe-select option {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+.parameter-number {
+  appearance: textfield;
+}
+
+.parameter-number::-webkit-inner-spin-button,
+.parameter-number::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.parameter-range {
+  height: 1rem;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.parameter-range::-webkit-slider-runnable-track {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: hsl(var(--muted));
+}
+
+.parameter-range::-webkit-slider-thumb {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: -0.25rem;
+  appearance: none;
+  border-radius: 999px;
+  background: hsl(var(--foreground));
+  box-shadow: 0 0 0 1px hsl(var(--background));
+}
+
+.parameter-range::-moz-range-track {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: hsl(var(--muted));
+}
+
+.parameter-range::-moz-range-progress {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+}
+
+.parameter-range::-moz-range-thumb {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: hsl(var(--foreground));
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border: 3px solid hsl(var(--background));
+  border-radius: 99px;
+}
