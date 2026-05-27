@@ -40,6 +40,7 @@ import { emptyProject, fallbackEffects } from "@/data"
 import { formatCommandForShell } from "@/lib/commandFormat"
 import { moveChainItem, removeChainItem, toggleChainItem, updateChainParameter } from "@/lib/effectChain"
 import { canAddEffectToChain, isEffectRenderable } from "@/lib/effectRenderability"
+import { effectTaxonomyId, effectTaxonomyPath, formatTaxonomyLabel } from "@/lib/effectTaxonomy"
 import { buildLivePreview } from "@/lib/livePreview"
 import { createMediaPreviewSource } from "@/lib/mediaPreview"
 import { parseProjectFile, serializeProjectFile } from "@/lib/projectFile"
@@ -140,21 +141,6 @@ function removeAutoArguments(script: string) {
     .replace(new RegExp(`,\\s*[A-Za-z_][A-Za-z0-9_]*\\s*=\\s*${valuePattern}`, "g"), "")
     .replace(new RegExp(`\\(\\s*[A-Za-z_][A-Za-z0-9_]*\\s*=\\s*${valuePattern}\\s*,\\s*`, "g"), "(")
     .replace(new RegExp(`\\(\\s*[A-Za-z_][A-Za-z0-9_]*\\s*=\\s*${valuePattern}\\s*\\)`, "g"), "()")
-}
-
-function effectTaxonomyPath(effect: Pick<EffectDescriptor, "category" | "menu_path">) {
-  const path = effect.menu_path?.length ? effect.menu_path : [effect.category]
-  return path.map((part) => part.trim()).filter(Boolean)
-}
-
-function effectTaxonomyId(path: string[]) {
-  return path.join(" > ")
-}
-
-function formatTaxonomyLabel(value: string) {
-  return value
-    .replace(/\bavsynth\b/i, "AviSynth")
-    .replace(/\bvapoursynth\b/i, "VapourSynth")
 }
 
 function compactScriptForDisplay(script: string) {
@@ -329,26 +315,32 @@ export function App() {
     isStartingExport || Boolean(activeExportJob && !TERMINAL_EXPORT_STATES.has(activeExportJob.state))
   const effectById = useMemo(() => new Map(effects.map((effect) => [effect.effect_id, effect])), [effects])
   const effectGroups = useMemo(() => groupEffectVariants(effects), [effects])
+  const taxonomyEffectGroups = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+    return effectGroups.filter((group) =>
+      group.variants.some((effect) => effectMatchesSearch(effect, needle) && effectMatchesQuickFilter(effect, quickFilter)),
+    )
+  }, [effectGroups, query, quickFilter])
   const primaryTaxonomyNodes = useMemo<EffectTaxonomyNode[]>(() => {
     const counts = new Map<string, { label: string; count: number }>()
-    for (const group of effectGroups) {
+    for (const group of taxonomyEffectGroups) {
       const path = effectTaxonomyPath(group)
       const label = path[0] ?? group.category
       const current = counts.get(label)
       counts.set(label, { label, count: (current?.count ?? 0) + 1 })
     }
     return [
-      { id: "all", label: "All", count: effectGroups.length },
+      { id: "all", label: "All", count: taxonomyEffectGroups.length },
       ...Array.from(counts.entries())
         .map(([id, value]) => ({ id, ...value }))
         .sort((a, b) => a.id.localeCompare(b.id)),
     ]
-  }, [effectGroups])
+  }, [taxonomyEffectGroups])
   const subcategoryNodes = useMemo<EffectTaxonomyNode[]>(() => {
-    if (selectedCategory === "all") return [{ id: "all", label: "All", count: effectGroups.length }]
+    if (selectedCategory === "all") return [{ id: "all", label: "All", count: taxonomyEffectGroups.length }]
     const counts = new Map<string, { label: string; count: number }>()
     let total = 0
-    for (const group of effectGroups) {
+    for (const group of taxonomyEffectGroups) {
       const path = effectTaxonomyPath(group)
       if (path[0] !== selectedCategory) continue
       total += 1
@@ -364,10 +356,9 @@ export function App() {
         .map(([id, value]) => ({ id, ...value }))
         .sort((a, b) => a.label.localeCompare(b.label)),
     ]
-  }, [effectGroups, selectedCategory])
+  }, [selectedCategory, taxonomyEffectGroups])
   const visibleEffectGroups = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    return effectGroups.filter((group) => {
+    return taxonomyEffectGroups.filter((group) => {
       const groupPath = effectTaxonomyPath(group)
       const groupTaxonomyId = effectTaxonomyId(groupPath)
       const matchesCategory = selectedCategory === "all" || groupPath[0] === selectedCategory
@@ -377,11 +368,9 @@ export function App() {
         groupTaxonomyId.startsWith(`${selectedSubcategory} > `)
       if (!matchesCategory || !matchesSubcategory) return false
 
-      return group.variants.some((effect) => {
-        return effectMatchesSearch(effect, needle) && effectMatchesQuickFilter(effect, quickFilter)
-      })
+      return true
     })
-  }, [effectGroups, query, quickFilter, selectedCategory, selectedSubcategory])
+  }, [selectedCategory, selectedSubcategory, taxonomyEffectGroups])
   const selectedChainItem =
     project.effect_chain.find((effect) => effect.id === selectedChainItemId) ?? project.effect_chain[0] ?? null
   const selectedEffectDescriptor = selectedChainItem ? effectById.get(selectedChainItem.effect_id) : undefined

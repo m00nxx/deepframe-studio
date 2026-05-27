@@ -1,4 +1,5 @@
 import type { EffectDescriptor } from "@/types/domain"
+import { effectTaxonomyPath } from "@/lib/effectTaxonomy"
 
 export type EffectEngineChoice = "auto" | "vapoursynth" | "avisynth"
 
@@ -10,13 +11,8 @@ export type EffectVariantGroup = {
   variants: EffectDescriptor[]
 }
 
-function normalizedPath(effect: EffectDescriptor) {
-  const path = effect.menu_path?.length ? effect.menu_path : [effect.category]
-  return path.map((part) => part.trim()).filter(Boolean)
-}
-
 function groupKey(effect: EffectDescriptor) {
-  return `${normalizedPath(effect).join(" > ").toLowerCase()}::${effect.name.trim().toLowerCase()}`
+  return `${effectTaxonomyPath(effect).join(" > ").toLowerCase()}::${effect.name.trim().toLowerCase()}`
 }
 
 function engineWeight(effect: EffectDescriptor) {
@@ -38,7 +34,7 @@ export function groupEffectVariants(effects: EffectDescriptor[]) {
         id: key,
         name: effect.name,
         category: effect.category,
-        menu_path: effect.menu_path,
+        menu_path: effectTaxonomyPath(effect),
         variants: [effect],
       })
     }
